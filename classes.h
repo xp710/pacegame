@@ -2,6 +2,7 @@
 #include <string>
 #include <sstream>
 #include <vector>
+#include <fstream>
 using namespace std;
 
 //define object classes
@@ -33,6 +34,13 @@ public:
     void unlock(){
         if (is_locked){
             is_locked = 0;
+        }
+    }
+
+    //for locking doors
+    void lock(){
+        if (!is_locked){
+            is_locked = 1;
         }
     }
 
@@ -72,6 +80,9 @@ public:
     //disables the player from adding the room to their inventory
     bool can_be_taken = 0;
 
+    //hint for when players are stuck
+    string hint;
+
     //adds the ability to add items to the room
     void add_item(item* to_add){
         in_here.push_back(to_add);
@@ -80,6 +91,7 @@ public:
     room(string name_to_be, string desc_to_be){
         name = name_to_be;
         description = desc_to_be;
+        hint = "There is no hint for this room.";
     }
 };
 
@@ -484,7 +496,7 @@ public:
             }
         }
         /*help function*/else if (movepart == "help"){
-            cout << "PACE Game/Project ACE: Nox public beta 1.0" << endl
+            cout << "PACE Game/Project ACE: Nox public beta 1.3" << endl
                  << "Controls:" << endl
                  << "Type \"look\" to view the room description and the items in it again." << endl
                  << "You can also \"look [n, e, s or w]\" to look in the corresponding direction." << endl
@@ -505,7 +517,8 @@ public:
                  << "you will enter the door." << endl
                  << "Sometimes, you might come across something that seems like it could be entered that isn't a door. In that case," << endl
                  << "type \"enter [item]\" to enter it." << endl
-                 << "If you come accross a person, you can \"talk to [them]\"" << endl
+                 << "If you come accross a person, you can \"talk to [them]\"." << endl
+                 << "If you get stuck, some rooms have hints. To access a room's hint, type \"hint\"." << endl
                  << "Finally, type \"quit\" to quit the game." << endl;
         }
         /*door function*/else if ((movepart == "n") || (movepart == "e") || (movepart == "s") || (movepart == "w")){
@@ -562,7 +575,7 @@ public:
                 }
             }
         }
-        /*swearing function*/else if ((movepart == "####") || (movepart == "####") || (movepart == "damn") || (movepart == "Damn") ||(movepart == "####") || (movepart == "####") || (movepart == "####") || (movepart == "####") ||(movepart == "#####") || (movepart == "#####") || (movepart == "slut") || (movepart == "Slut") || (movepart == "whore") || (movepart == "Whore") || (movepart == "#######") || (movepart == "#######") || (movepart == "dick") || (movepart == "Dick") || (movepart == "cock") || (movepart == "Cock") || (movepart == "pussy") || (movepart == "Pussy") || (movepart == "###") || (movepart == "###") || (movepart == "twat") || (movepart == "Twat") || (movepart == "snatch") || (movepart == "Snatch")){
+        /*swearing function*/else if ((movepart == "fuck") || (movepart == "Fuck") || (movepart == "damn") || (movepart == "Damn") ||(movepart == "shit") || (movepart == "Shit") || (movepart == "cunt") || (movepart == "Cunt") ||(movepart == "bitch") || (movepart == "Bitch") || (movepart == "slut") || (movepart == "Slut") || (movepart == "whore") || (movepart == "Whore") || (movepart == "bastard") || (movepart == "bastard") || (movepart == "dick") || (movepart == "Dick") || (movepart == "cock") || (movepart == "Cock") || (movepart == "pussy") || (movepart == "Pussy") || (movepart == "ass") || (movepart == "Ass") || (movepart == "twat") || (movepart == "Twat") || (movepart == "snatch") || (movepart == "Snatch")){
             cout << "Calm down, Gordon Ramsey! No need for that kind of language! If you need help, just type \"help.\"" << endl;
         }
         /*frick and heck function*/else if ((movepart == "frick") || (movepart == "Frick") || (movepart == "frickin") || (movepart == "Frickin") || (movepart == "fricc") || (movepart == "Fricc") || (movepart == "heck") || (movepart == "Heck") || (movepart == "hecc") || (movepart == "Hecc")){
@@ -603,7 +616,7 @@ public:
                 }
             }
             //then tries again with anything in the inventory. don't name any two items the same,
-            //or this will #### things up
+            //or this will fuck things up
             for (int i = 0; i < inventory.size(); i++){
                 if (inventory[i]->name == movepart){
                     inventory[i]->use();
@@ -612,7 +625,7 @@ public:
         }
         /*talk function*/else if (movepart == "talk"){
             long_move >> movepart;
-            //skip over the second word. the player could say "talk #### billy" and it would still work
+            //skip over the second word. the player could say "talk fuck billy" and it would still work
             //i don't care if they say talk to, talk at, i'm just making it talk [word] [person]
             long_move >> movepart;
             //now search for the actual npc. the search is copied from look but repurposed to have the npc talk
@@ -707,6 +720,9 @@ public:
         /*soundtest function*/else if (movepart == "soundtest"){
             //this function serves no purpose other than to not cause
             //a glitch when the player uses the soundtest function
+        }
+        /*hint function*/else if (movepart == "hint"){
+            cout << current_room->hint << endl;
         }
 
         //display message if input doesn't match any commands
