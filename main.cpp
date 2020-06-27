@@ -1,11 +1,16 @@
 /***************************/
-/* Project ACE: Nox(b.1.3) */
+/* Project ACE: Nox(b.2.0) */
 /***************************/
 /*
-Contributors:
+Developer:
 XP710
 
-TODO: Add more to the new planet. Add saving and loading.
+TODO: Add saving and loading. Maybe add messages to commands such as telling you that there's no such thing to use
+
+Changes in unpublished updates:
+b.1.1 Added a buggy save and load feature as well as the strange house
+b.1.2 Tried to improve save and load features but in the end removed them and finished the strange house puzzle
+b.1.4 Updated the use command to work with alternate names. Added the Burger Shack and the pencil, as well as the murderer ending
 */
 #include <iostream>
 #include "classes.h"
@@ -15,7 +20,11 @@ using namespace std;
 int main()
 {
     //Starting info for the game
-    cout << "Welcome to Project ACE: Nox v b.1.3!" << endl
+    cout << "Welcome to Project ACE:" << endl
+         << " _  _  ____  __" << endl
+         << "| \\| |/  \\ \\/ /" << endl
+         << "|    | <> >  <" << endl
+         << "|_|\\_|\\__/_/\\_\\ version b.2.0" << endl
          << endl
          << "Although janitors' closets are usually small, this one is of a nice size. It's not as claustrophobic as you" << endl
          << "imagined when you first applied for the job. The job of janitor is always looked down upon, but you take" << endl
@@ -110,17 +119,28 @@ int main()
     room tc("Test Chamber", "This is an interesting room which has an obervation deck behind incredibly strong windows. From the "
                             "observation deck, you can see something resembling a spaceship in a pretty empty room with strong-looking"
                             " walls.\nTo the east is an exit to the hall.");
-    tc.hint = "There is currently nothing in this room. Stop wasting your time.";
+    tc.hint = "There is nothing to do in this room. Just clean it and leave.";
     door tc2moh("e", "There is an exit to the hall to the east.", "Middle of Hall");
+    door tc2tbs("w", "The door is labeled \"The Burger Shack\"", "The Burger Shack");
     tc.add_item(&tc2moh);
     roomlist.push_back(&tc);
+
+    /*
+     * The Burger Shack
+     */
+    room tbs("The Burger Shack", "You have arrived in the burger shack.");
+    door tbs2tc("e", "This door leads back to freedom from Grimace.", "Test Chamber");
+    tbs.add_item(&tbs2tc);
+    roomlist.push_back(&tbs);
+    npc grimace("Grimace", "Grimace is a huge, purple fella with a craving for burgers.", "Gimme a burger and no one dies.", "Grimace is frickin' dead.", &tbs);
+    npc_list.push_back(&grimace);
 
     /*
      * Employee Lounge
      */
     room el("Employee Lounge", "This is a nice room, even if it is a little small. It has a sink and refrigerator in it,"
-                               " as well as a water cooler. There's a decently sized table, with four foldable chairs set around it,"
-                               " and a high window next to it, \nletting some sunlight in the room, lifting the mood.");
+                               " as well as a water cooler. There's a decently sized table, with four\nfoldable chairs set around it,"
+                               " and a high window next to it, letting some sunlight in the room, lifting the mood.");
     door el2neoh("e", "To the east is the north end of a hall.", "North End of Hall");
     key car_keys("car keys", "These appear to be somebody's car keys. You probably shouldn't take them.");
     car_keys.names.push_back("car");
@@ -245,10 +265,12 @@ int main()
                                                  "for developers to make sure all the sounds worked in game. \n"
                                                  "In the Sonic the Hedgehog games, cheat codes would often be\n"
                                                  "put in through this soundtest screen.", 1);
+    weapon pencil("pencil", "This pencil is extremely sharp.");
     ra.add_item(&ra2dwn_el_l);
     ra.add_item(&ra2c);
     ra.add_item(&ra2br);
     ra.add_item(&magazine);
+    ra.add_item(&pencil);
     roomlist.push_back(&ra);
     npc receptionist("Receptionist", "You haven't met the receptionist yet, but they seem nice enough.", "Hey, you're the new janitor, right?", "You killed the receptionist. What's wrong with you?", &ra);
     npc_list.push_back(&receptionist);
@@ -288,28 +310,18 @@ int main()
     roomlist.push_back(&dp);
 
     /*
-     * Top of Hill
-     */
-    room toh("Top of Hill", "You are at the top of a hill.");
-    door toh2sh("s", "There is a strange looking house to the south.", 1, "alien key", "Strange House");
-    door toh2end("wormhole", "This is just like the wormhole from earlier. This time you can see the Project A.C.E. room through it.", "The End");
-    toh.add_item(&toh2end);
-    toh.add_item(&toh2sh);
-    roomlist.push_back(&toh);
-
-    /*
      * Strange House
      */
     room sh("Strange House", "You are inside a pretty strange house. It seems to have been grown from a tree. There's what could be called a window "
                              "\nto the north, showing the top of a hill with the wormhole on top of it.\nThere are exits to the north, east, south, and west.");
     sh.hint = "You need the alien key to go north.";
     door sh2dp("e", "There's not much out of the east exit.", "Different Planet");
-    door sh2toh("n", "Out of the north exit is a hill with the wormhole on it.", 1, "alien key", "Top of Hill");
+    door sh2boh("n", "Out of the north exit is a hill with the wormhole on the top of it.", 1, "alien key", "Bottom of Hill");
     door sh2urn("w", "You can't tell what the room to the west is.", "Unknown Room North");
     door sh2ir("s", "This door reminds you of doors you see in spaceships in movies.", 1, "NULL", "Incubation Room");
     sh.add_item(&sh2ir);
     sh.add_item(&sh2urn);
-    sh.add_item(&sh2toh);
+    sh.add_item(&sh2boh);
     sh.add_item(&sh2dp);
     roomlist.push_back(&sh);
 
@@ -348,7 +360,7 @@ int main()
         }
         void become_clean(){
             cout << "The rover is now clean." << endl;
-            description = "The rover is labeled \"Advanced CElestial Rover 4\"";
+            description = "The rover is labeled \"Advanced Celestial Exploration Rover 4\"";
         }
     };
 
@@ -368,6 +380,9 @@ int main()
     af.names.push_back("amniotic");
     af.names.push_back("fluid");
     af.names.push_back("jar");
+    generic_item alienbaby("fetus", "It actually seems to still be just barely alive.", 1);
+    alienbaby.hidden = 1;
+    ir.add_item(&alienbaby);
     ir.add_item(&ir2urs);
     ir.add_item(&ir2sh);
     ir.add_item(&af);
@@ -378,7 +393,7 @@ int main()
      */
     room urn("Unknown Room North", "It's impossible to know what this room is for based on the architecture. You've never even imagined a room like this. There is"
                             "\na sign on the wall which says, \"Drop key on floor to leave.\""
-                            "\nThere is an exit to the east.");
+                            "\nThere are exits to the east and south.");
     door urn2sh("e", "This door seems to lock itself whenever you pick up its' key.", "Strange House");
     door urn2urs("s", "The room continues to the south", "Unknown Room South");
     key ak("alien key", "You can tell this is a key because of the way it's shaped, but it, like the house, seems to have been grown.");
@@ -395,7 +410,7 @@ int main()
      * Unknown Room South
      */
     room urs("Unknown Room South", "This is the south of the strange room.\nThere are exits to the north and east.");
-    urs.hint = "You might be able to clean the rover with some sort of fluid.";
+    urs.hint = "You might be able to clean the rover with some sort of fluid. Also, what's an acronym?";
     door urs2ir("e", "This door leads to the east.", 1, "NULL", "Incubation Room");
     door urs2urn("n", "The room continues to the north", "Unknown Room North");
     rover rover("rover");
@@ -403,6 +418,57 @@ int main()
     urs.add_item(&urs2urn);
     urs.add_item(&urs2ir);
     roomlist.push_back(&urs);
+
+    /*
+     * Bottom of Hill
+     */
+    room boh("Bottom of Hill", "You are at the bottom of a hill which continues north.");
+    door boh2sh("s", "This door leads back to the strange house.", 1, "alien key", "Strange House");
+    door boh2mh("n", "To the north is more hill.", "Middle of Hill");
+    boh.add_item(&boh2mh);
+    boh.add_item(&boh2sh);
+    roomlist.push_back(&boh);
+
+    /*
+     * Middle of Hill
+     */
+    room mh("Middle of Hill", "You are in the middle of a hill which continues north and south.");
+    door mh2boh("s", "To the south is more hill.", "Bottom of Hill");
+    door mh2toh("n", "To the north is more hill.", "Top of Hill");
+    mh.add_item(&mh2toh);
+    mh.add_item(&mh2boh);
+    roomlist.push_back(&mh);
+
+    /*
+     * Top of Hill
+     */
+    room toh("Top of Hill", "You are on the top of a hill which continues south.\nThere is an enterance to a house to the west.");
+    door toh2mh("s", "To the south is more hill.", "Middle of Hill");
+    door toh2ssh("w", "To the west is a house.", "Second Strange House");
+    door toh2end("wormhole", "This is just like the wormhole from earlier. This time you can see the Project A.C.E. room through it.", "The End");
+    toh.add_item(&toh2mh);
+    toh.add_item(&toh2ssh);
+    toh.add_item(&toh2end);
+    roomlist.push_back(&toh);
+
+    /*
+     * Second Strange House
+     */
+    room ssh("Second Strange House", "This is another strange alien house.\nThere are exits to the east and south.");
+    door ssh2toh("e", "To the east is the top of a hill", "Top of Hill");
+    door ssh2sir("s", "To the south is a second incubation room", "Second Incubation Room");
+    ssh.add_item(&ssh2toh);
+    ssh.add_item(&ssh2sir);
+    roomlist.push_back(&ssh);
+
+    /*
+     * Second Incubation Room
+     */
+    room sir("Second Incubation Room", "This is a second incubation room. The tank here is empty, save for the necessary fluids filling it."
+                                       "\nThere is an exit to the north.");
+    door sir2ssh("n", "The main part of the house is through the north.", "Second Strange House");
+    sir.add_item(&sir2ssh);
+    roomlist.push_back(&sir);
 
     /*
      * End Room
@@ -521,7 +587,9 @@ int main()
                     }
                 }
             }else if (code == "19921124"){
-                cout << "Nice. I don't have an actual effect for this yet. Try this code with each release, I'll do something with it." << endl;
+                cout << "Go to the Test Chamber and go west." << endl;
+                tc.hint = "Go west.";
+                tc.add_item(&tc2tbs);
             }else if ((code == "ACER 4") || (code == "acer 4")){
                 urs2ir.unlock();
                 ir2urs.unlock();
@@ -545,6 +613,24 @@ int main()
             }
         }
 
+        //similar to the above block of code, this is the stuff defining the survivability of Grimace
+        for (int i = 0; i < tbs.in_here.size(); i++){
+            if ((sg.showcurr_room() == &tc) && (move == "e") && (tbs.in_here[i]->disp_name() != "hamburger") && (grimace.is_alive())){
+                if ((tbs.in_here.size() < 2) || (i == 1)){
+                    cout << "Grimace leaps after you and says: \"Where's my hamburger?\" and kills you." << endl;
+                    return 0;
+                }
+            }
+        }
+
+        //the way the fetus is saved
+        for (int i = 0; i < sir.in_here.size(); i++){
+            if (sir.in_here[i]->disp_name() == "fetus"){
+                cout << "You put the fetus in the tank. You can tell by the kicking of its' legs after it settles in that's it will live to birth." << endl;
+                sir.in_here.pop_back();
+            }
+        }
+
         //end game if player reaches The End
         if (sg.in_room() == &end){
             sg.play = 0;
@@ -554,11 +640,19 @@ int main()
     //if they are in the employee lounge, give it a good ending
     //otherwise, it's the bad ending
     for (int i = 0; i < el.in_here.size(); i++){
-        if (el.in_here[i]->disp_name() == "car keys"){
+        if (el.in_here[i]->disp_name() == "car keys"){ //true ending
             cout << "\nAfter returning from the wormhole, you are greeted by scientists" << endl
                  << "congragulating you on your discovery!" << endl;
             return 0;
-        }else if (i == el.in_here.size() - 1){
+
+        }else if (!receptionist.is_alive()){ //murderer ending
+            cout << "\nAfter returning from the wormhole, you are greeted by a scientist, your boss, and" << endl
+                 << "the security guard, Travis Baily. Travis is holding a gun to your face. Travis says that" << endl
+                 << "he saw you kill the receptionist on the security cameras. Your boss then says your fired." << endl
+                 << "Then Travis kills you." << endl;
+            return 0;
+
+        }else if (i == el.in_here.size() - 1){ //funny ending
             cout << "\nAfter returning from the wormhole, you are greeted by scientist, your boss, and" << endl
                  << "the security guard, Travis Bailey. Travis explains that he was looking for" << endl
                  << "his car keys in the employee lounge. He reviewed security footage and saw you move them." << endl

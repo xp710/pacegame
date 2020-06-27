@@ -291,6 +291,7 @@ public:
         name = "crowbar";
         description = "Just a regular crowbar.";
         can_kill = 1;
+        can_be_taken = 1;
     }
 
     //constructor
@@ -298,6 +299,7 @@ public:
         name = name_to_be;
         description = description_to_be;
         can_kill = 1;
+        can_be_taken = 1;
     }
 };
 
@@ -496,8 +498,7 @@ public:
             }
         }
         /*help function*/else if (movepart == "help"){
-            cout << "PACE Game/Project ACE: Nox public beta 1.3" << endl
-                 << "Controls:" << endl
+            cout << "Controls:" << endl
                  << "Type \"look\" to view the room description and the items in it again." << endl
                  << "You can also \"look [n, e, s or w]\" to look in the corresponding direction." << endl
                  << "Type \"look at [item]\" to view the description of whatever item you typed." << endl
@@ -613,6 +614,12 @@ public:
             for (int i = 0; i < current_room->in_here.size(); i++){
                 if (current_room->in_here[i]->name == movepart){
                     current_room->in_here[i]->use();
+                }else{ //for in case you call it by one of its' other names
+                    for (int j = 0; j < current_room->in_here[i]->names.size(); j++){
+                        if (current_room->in_here[i]->names[j] == movepart){
+                            current_room->in_here[i]->use();
+                        }
+                    }
                 }
             }
             //then tries again with anything in the inventory. don't name any two items the same,
@@ -620,6 +627,12 @@ public:
             for (int i = 0; i < inventory.size(); i++){
                 if (inventory[i]->name == movepart){
                     inventory[i]->use();
+                }else{ //for in case you call it by one of its' other names
+                    for (int j = 0; j < inventory[i]->names.size(); j++){
+                        if (inventory[i]->names[j] == movepart){
+                            inventory[i]->use();
+                        }
+                    }
                 }
             }
         }
@@ -633,14 +646,17 @@ public:
                 //makes sure the npc exists and is in the same room
                 if ((npc_list[i]->name == movepart) && (npc_list[i]->in_room == current_room) && (npc_list[i]->alive)){
                     cout << npc_list[i]->name << " says: \"" << npc_list[i]->talk_message << "\"" << endl;
+                    i = npc_list.size();
 
                 //tell the player they can't talk to existing npcs if not in the room
                 }else if ((npc_list[i]->name == movepart) && (npc_list[i]->in_room != current_room)){
                     cout << npc_list[i]->name << " is not in the room to talk to." << endl;
+                    i = npc_list.size();
 
                 //tell the player they can't talk to dead people
                 }else if ((npc_list[i]->name == movepart) && (npc_list[i]->in_room == current_room) && (!npc_list[i]->alive)){
                     cout << "You can't talk to dead people." << endl;
+                    i = npc_list.size();
 
                 //much like the door function, we're gonna hope this can't be triggered if the others are
                 }else if (i == npc_list.size() - 1){
