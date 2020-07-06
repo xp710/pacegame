@@ -1,16 +1,23 @@
 /***************************/
-/* Project ACE: Nox(b.2.0) */
+/* Project ACE: Nox(b.2.1) */
 /***************************/
 /*
 Developer:
 XP710
 
-TODO: Add saving and loading. Maybe add messages to commands such as telling you that there's no such thing to use
+TODO: Add saving and loading.
 
 Changes in unpublished updates:
 b.1.1 Added a buggy save and load feature as well as the strange house
+
 b.1.2 Tried to improve save and load features but in the end removed them and finished the strange house puzzle
+
 b.1.4 Updated the use command to work with alternate names. Added the Burger Shack and the pencil, as well as the murderer ending
+
+Latest Changes:
+b.2.1 Updated look, use, take, and drop commands to tell you if there is nothing to look at, use, take, or drop. Also updated the
+      way items are displayed so that it doesn't just say "there is a [item] here." It now has the ability to say so for plural items
+      and items starting with vowels. Also fixed typos
 */
 #include <iostream>
 #include "classes.h"
@@ -24,7 +31,7 @@ int main()
          << " _  _  ____  __" << endl
          << "| \\| |/  \\ \\/ /" << endl
          << "|    | <> >  <" << endl
-         << "|_|\\_|\\__/_/\\_\\ version b.2.0" << endl
+         << "|_|\\_|\\__/_/\\_\\ version b.2.1" << endl
          << endl
          << "Although janitors' closets are usually small, this one is of a nice size. It's not as claustrophobic as you" << endl
          << "imagined when you first applied for the job. The job of janitor is always looked down upon, but you take" << endl
@@ -140,11 +147,13 @@ int main()
      */
     room el("Employee Lounge", "This is a nice room, even if it is a little small. It has a sink and refrigerator in it,"
                                " as well as a water cooler. There's a decently sized table, with four\nfoldable chairs set around it,"
-                               " and a high window next to it, letting some sunlight in the room, lifting the mood.");
+                               " and a high window next to it, letting some sunlight in the room, lifting the mood."
+                               "\nThere is an exit to the east.");
     door el2neoh("e", "To the east is the north end of a hall.", "North End of Hall");
     key car_keys("car keys", "These appear to be somebody's car keys. You probably shouldn't take them.");
     car_keys.names.push_back("car");
     car_keys.names.push_back("keys");
+    car_keys.here_msg = "There are some ";
     el.add_item(&el2neoh);
     el.add_item(&car_keys);
     roomlist.push_back(&el);
@@ -185,7 +194,8 @@ int main()
      */
     room hr("Hidden Room", "The wormhole brings you to a room you haven't seen before. There aren't any exits.");
     key orskey("key", "A brass key.");
-    door hr2ors("wormhole", "You can't where the wormhole leads.", "Observation Room South");
+    orskey.names.push_back("brass");
+    door hr2ors("wormhole", "You can't see where the wormhole leads.", "Observation Room South");
     hr.add_item(&hr2ors);
     hr.add_item(&orskey);
     roomlist.push_back(&hr);
@@ -232,6 +242,7 @@ int main()
     room elv_l("Elevator Lobby", "This room is where the elevators leading downstairs are.\nThere is an exit to the north.");
     door elv_l2seoh("n", "This door leads back to the hallway.", "South End of Hall");
     door elv_l2dwn_elv_l("elevator", "This elevator leads downstairs.", "Downstairs Elevator Lobby");
+    elv_l2dwn_elv_l.here_msg = "There is an ";
     elv_l.add_item(&elv_l2seoh);
     elv_l.add_item(&elv_l2dwn_elv_l);
     roomlist.push_back(&elv_l);
@@ -241,6 +252,7 @@ int main()
      */
     room dwn_elv_l("Downstairs Elevator Lobby", "This is the downstairs elevator lobby.\nThere is an exit to the north.");
     door dwn_elv_l2elv_l("elevator", "This elevator leads upstairs.", "Elevator Lobby");
+    dwn_elv_l2elv_l.here_msg = "There is an ";
     door dwn_elv_l2ra("n", "The south end of a hallway is north of this room.", "Reception Area");
     dwn_elv_l.add_item(&dwn_elv_l2ra);
     dwn_elv_l.add_item(&dwn_elv_l2elv_l);
@@ -380,6 +392,7 @@ int main()
     af.names.push_back("amniotic");
     af.names.push_back("fluid");
     af.names.push_back("jar");
+    af.here_msg = "There is some ";
     generic_item alienbaby("fetus", "It actually seems to still be just barely alive.", 1);
     alienbaby.hidden = 1;
     ir.add_item(&alienbaby);
@@ -399,6 +412,7 @@ int main()
     key ak("alien key", "You can tell this is a key because of the way it's shaped, but it, like the house, seems to have been grown.");
     ak.names.push_back("alien");
     ak.names.push_back("key");
+    ak.here_msg = "There is an ";
     computer lever("lever", "This lever seems to be in working condition", &sh2ir);
     urn.add_item(&lever);
     urn.add_item(&urn2urs);
@@ -494,10 +508,8 @@ int main()
         }
 
     };
-
     //this is declared for later use in the bathroom
     chainsaw chainsaw("chainsaw", "This chainsaw can only cut trees. It says so on the back.");
-
     //make a bool for testing if the chainsaw has already been given
     bool given = 0;
 
@@ -590,7 +602,7 @@ int main()
                 cout << "Go to the Test Chamber and go west." << endl;
                 tc.hint = "Go west.";
                 tc.add_item(&tc2tbs);
-            }else if ((code == "ACER 4") || (code == "acer 4")){
+            }else if ((code == "ACER 4") || (code == "acer 4") || (code == "ACER4") || (code == "acer4")){
                 urs2ir.unlock();
                 ir2urs.unlock();
                 if (sg.showcurr_room() == &urs){

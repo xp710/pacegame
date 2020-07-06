@@ -29,6 +29,8 @@ protected:
 public:
     //vector of names an item can be reffered to in-game
     vector<string> names;
+    //beginning of message saying that the item is here
+    string here_msg = "There is a ";
 
     //for unlocking doors with that one cheat code
     void unlock(){
@@ -321,7 +323,7 @@ public:
             }else{
                 //only display the item if it isn't hidden
                 if (!current_room->in_here[i]->hidden){
-                    cout << "There is a " << current_room->in_here[i]->name << " here." << endl;
+                    cout << current_room->in_here[i]->here_msg << current_room->in_here[i]->name << " here." << endl;
                 }
             }
         }
@@ -373,6 +375,7 @@ public:
         if ((movepart == "look") || (movepart == "l")){
             long_move >> movepart;
             if (movepart == "at"){
+                bool looked = 0; //bool so that it can say if there isn't anything to look at
                 long_move >> movepart;
                 //looks at every item in the room or player's inventory
                 //for one with a matching name. if it finds one,
@@ -380,11 +383,13 @@ public:
                 for (int i = 0; i < current_room->in_here.size(); i++){
                     if (movepart == current_room->in_here[i]->name){
                         cout << current_room->in_here[i]->description << endl;
+                        looked = 1;
                         i = current_room->in_here.size();
                     }else{
                         for (int j = 0; j < current_room->in_here[i]->names.size(); j++){
                             if (movepart == current_room->in_here[i]->names[j]){
                                 cout << current_room->in_here[i]->description << endl;
+                                looked = 1;
                             }
                         }
                     }
@@ -394,18 +399,25 @@ public:
                     //makes sure the npc exists and is in the same room
                     if ((npc_list[i]->name == movepart) && (npc_list[i]->in_room == current_room)){
                         cout << npc_list[i]->description << endl;
+                        looked = 1;
                     }
                 }
                 for (int i = 0; i < inventory.size(); i++){
                     if (movepart == inventory[i]->name){
                         cout << inventory[i]->description << endl;
+                        looked = 1;
                     }else{
                         for (int j = 0; j < inventory[i]->names.size(); j++){
                             if (movepart == inventory[i]->names[j]){
                                 cout << inventory[i]->description << endl;
+                                looked = 1;
                             }
                         }
                     }
+                }
+                //say if there isn't anything matching what they want to look at
+                if (!looked){
+                    cout << "There isn't a " << movepart << " to look at." << endl;
                 }
             }else if ((movepart == "n") || (movepart == "e") || (movepart == "s") || (movepart == "w")){
                 for (int i = 0; i < current_room->in_here.size(); i++){
@@ -422,6 +434,7 @@ public:
         }
         /*take function*/else if (movepart == "take"){
             long_move >> movepart;
+            bool taken = 0; //bool for telling if anything's been taken
             for (int i = 0; i < current_room->in_here.size(); i++){
                 //tests for item player is trying to pick up
                 if (movepart == current_room->in_here[i]->name){
@@ -430,9 +443,13 @@ public:
                         inventory.push_back(current_room->in_here[i]);
                         current_room->in_here.erase(current_room->in_here.begin() + i);
                         cout << "Taken." << endl;
+                        taken = 1;
                         i = current_room->in_here.size();
                     }else{
                         cout << "That can't be taken." << endl;
+                        //even though nothing is taken here, we tell the bool it is
+                        //so that the game doesn't tell the player that the object doesn't exist
+                        taken = 1;
                         i = current_room->in_here.size();
                     }
                 //if it's not equal to what's displayed, see if it works with any of the other names
@@ -444,18 +461,20 @@ public:
                                 inventory.push_back(current_room->in_here[i]);
                                 current_room->in_here.erase(current_room->in_here.begin() + i);
                                 cout << "Taken." << endl;
+                                taken = 1;
                                 i = current_room->in_here.size();
                             }else{
                                 cout << "That can't be taken." << endl;
+                                taken = 1;
                                 i = current_room->in_here.size();
                             }
                         }
                     }
-
-                //oh em effing gee, it's just like the end of the look and door function!
-                }else if (i == current_room->in_here.size() - 1){
-                    cout << "That isn't here." << endl;
                 }
+            }
+            //if the object doesn't exist, say so
+            if (!taken){
+                cout << "There isn't a " << movepart << " to take." << endl;
             }
         }
         /*inventory function*/else if (movepart == "i"){
@@ -470,6 +489,7 @@ public:
             if (inventory.size() == 0){
                 cout << "You don't have anything to drop." << endl;
             }else{
+                bool dropped = 0; //bool for telling if they have the item or not
                 //otherwise, search their inventory for what they want to drop
                 for (int i = 0; i < inventory.size(); i++){
                     //tests for item player is trying to drop
@@ -477,6 +497,7 @@ public:
                         current_room->add_item(inventory[i]);
                         inventory.erase(inventory.begin() + i);
                         cout << "Dropped." << endl;
+                        dropped = 1;
                         //after dropping the item, stop the loop
                         i = inventory.size();
                     }else if (inventory[i]->name != movepart){
@@ -485,15 +506,16 @@ public:
                                 current_room->add_item(inventory[i]);
                                 inventory.erase(inventory.begin() + i);
                                 cout << "Dropped." << endl;
+                                dropped = 1;
                                 //after dropping the item, stop the loop
                                 i = inventory.size();
                             }
                         }
-
-                    //if the last item in the inventory isn't what they said to drop, call them out
-                    }else if (i == inventory.size() - 1){
-                        cout << "You don't have such a thing." << endl;
                     }
+                }
+                //if nothing was dropped, say so
+                if (!dropped){
+                    cout << "You don't have a " << movepart << " to drop." << endl;
                 }
             }
         }
@@ -610,17 +632,23 @@ public:
         }
         /*use function*/else if (movepart == "use"){
             long_move >> movepart;
+            bool used = 0; //creates a bool so that it can say if there isn't anything with that name
             //first uses anything maching the name in the room
             for (int i = 0; i < current_room->in_here.size(); i++){
                 if (current_room->in_here[i]->name == movepart){
                     current_room->in_here[i]->use();
+                    used = 1;
                 }else{ //for in case you call it by one of its' other names
                     for (int j = 0; j < current_room->in_here[i]->names.size(); j++){
                         if (current_room->in_here[i]->names[j] == movepart){
                             current_room->in_here[i]->use();
+                            used = 1;
                         }
                     }
                 }
+            }
+            if (!used){
+                cout << "There isn't a " << movepart << " here to use." << endl;
             }
             //then tries again with anything in the inventory. don't name any two items the same,
             //or this will fuck things up
@@ -755,5 +783,13 @@ public:
     //a way for the rest of the code to see the current room's item list
     vector<item*> current_room_items(){
         return current_room->in_here;
+    }
+
+    //an easy way to clear the player's inventory
+    //NOTE: this erases items altogether. it doesn't put them back where they belong
+    void clear_inventory(){
+        for (int i = inventory.size(); i > 0; i--){
+            inventory.pop_back();
+        }
     }
 };
